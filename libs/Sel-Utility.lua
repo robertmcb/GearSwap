@@ -2009,7 +2009,6 @@ function check_cpring()
 			end
 		end
 
-		if item_available('Capacity Ring') then
 			local capacity_ring = get_usable_item('Capacity Ring')
 
 			if ((capacity_ring.next_use_time + time_offset) < 6 and capacity_ring.charges_remaining > 0) then
@@ -2017,7 +2016,6 @@ function check_cpring()
 				cp_delay = 10
 				return true
 			end
-		end
 
 		if item_available('Vocation Ring') then
 			local vocation_ring = get_usable_item('Vocation Ring')

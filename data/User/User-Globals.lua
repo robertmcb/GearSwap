@@ -11,6 +11,42 @@ state.AutoLockstyle	 	    = M(true, 'AutoLockstyle Mode') --Set this to false if
 state.CancelStoneskin 		= M(true, 'Cancel Stone Skin') --Set this to false if you don't want to automatically cancel stoneskin when you're slept.
 state.SkipProcWeapons 		= M(true, 'Skip Proc Weapons') --Set this to false if you want to display weapon sets fulltime rather than just Aby/Voidwatch.
 state.NotifyBuffs	  		= M(false, 'Notify Buffs') 	 --Set this to true if you want to notify your party when you recieve a specific buff/debuff. (List Below)
+state.NotifyBuffs	  		= M(true, 'Notify Buffs') 	 --Set this to true if you want to notify your party when you recieve a specific buff/debuff. (List Below)
+NotifyBuffs = S{'doom','petrification'}
+
+
+	state.AdjustTargets	  	  = M(true, 'Automatically Adjust Targets')
+	state.AutoAcceptRaiseMode = M(false, 'Auto Accept Raise Mode')
+	state.AutoCleanupMode  	  = M(false, 'Auto Cleanup Mode')
+	state.AutoContradanceMode = M(true, 'Auto Contradance Mode')
+	state.AutoFoodMode		  = M(false, 'Auto Food Mode')
+	state.AutoHolyWaterMode   = M(true, 'Auto Holy Water Mode')
+	state.AutoJumpMode 		  = M(false, 'Auto Jump Mode')
+	state.AutoNukeMode 		  = M(false, 'Auto Nuke Mode')
+	state.AutoRemoveDoomMode  = M(true, 'Auto Remove Doom Mode')
+	state.AutoShadowMode 	  = M(false, 'Auto Shadow Mode')
+	state.AutoSubMode 		  = M(false, 'Auto Sublimation Mode')
+	state.AutoSuperJumpMode   = M(false, 'Auto SuperJump Mode')
+	state.AutoTankMode 		  = M(false, 'Auto Tank Mode')
+	state.AutoTrustMode 	  = M(false, 'Auto Trust Mode')
+	state.AutoWSMode		  = M(false, 'Auto Weaponskill Mode')
+	state.AutoWSRestore		  = M(true, 'Auto Weaponskill Restore Mode')
+	state.Capacity 			  = M(false, 'Capacity Mode')
+	state.DisplayMode  	  	  = M(true, 'Display Mode')
+	state.ElementalWheel 	  = M(false, 'Elemental Wheel')
+	state.HoverShot		 	  = M(true, 'HoverShot')
+	state.IdleStep			  = M(true, 'Idle Step Mode')
+	state.Kiting              = M(false, 'Kiting')
+	state.MaintainAftermath	  = M(true, 'Maintain Aftermath')
+	state.MiniQueue		 	  = M(true, 'MiniQueue')
+	state.RefineWaltz		  = M(true, 'RefineWaltz')
+	state.RngHelper		 	  = M(false, 'RngHelper')
+	state.RngHelperQuickDraw  = M(false, 'RngHelperQuickDraw')
+	state.SelectNPCTargets    = M(false, 'Select NPC Targets')
+	state.SelfWarp2Block 	  = M(true, 'Block Warp2 on Self')
+	state.UnlockWeapons		  = M(false, 'Unlock Weapons')
+	state.UseCustomTimers 	  = M(true, 'Use Custom Timers')
+	state.WakeUpWeapons 	  =	M(false, 'Wake Up Weapons')
 
 --[[Binds you may want to change.
 	Bind special characters.
@@ -55,6 +91,84 @@ send_command('bind ^y gs c toggle AutoCleanupMode') --Uses certain items and tri
 send_command('bind ^t gs c cycle treasuremode') --Toggles hitting htings with your treasure hunter set.
 send_command('bind !t input /target <bt>') --Targets the battle target.
 send_command('bind ^o fillmode') --Lets you see through walls.
-send_command('bind @m gs c mount Ixion')
+send_command('bind @m gs c mount Spheroid')
 
 NotifyBuffs = S{'doom','petrification'}
+
+Rings = S{'Capacity Ring', 'Warp Ring', 'Trizek Ring', 'Expertise Ring', 'Emperor Band', 'Caliber Ring', 'Echad Ring', 'Facility Ring'}
+sets.reive = {neck="Ygnas's Resolve +1"}
+-- sets.crafting = { body="Alchemist's Apron", sub="Brewer's Scutum", head="Midras's Helm +1", main="Caduceus", neck="Alchemist's Torque", ring1="Craftmaster's ring", ring2="Orvail Ring" }
+
+equip_lock = S{
+    "Warp Ring",
+    "Capacity Ring",
+    "Vocation Ring",
+    "Trizek Ring",
+    "Endorsement Ring"
+}
+function user_handle_equipping_gear(status, eventArgs)
+     if equip_lock:contains(player.equipment.right_ring) then
+         disable('ring2')
+     else
+         enable('ring2')
+     end
+ end
+
+function user_post_precast(spell, action, spellMap, eventArgs)
+    -- reive mark
+	if spell.type:lower() == 'weaponskill' then
+        if buffactive['Reive Mark'] then
+            equip(sets.reive)
+        end
+    end
+end
+
+ --function user_post_aftercast(spell, action, spellMap, eventArgs)
+  --   if spell.type:lower() == 'weaponskill' then
+  --       send_command('wait 1; input /echo ---------------- TP <tp> ----------------')
+  --   end
+ -- end
+
+function user_customize_melee_set(meleeSet)
+    if buffactive['Reive Mark'] then
+        meleeSet = set_combine(meleeSet, sets.reive)
+    end
+    return meleeSet
+end
+
+function user_customize_idle_set(idleSet)
+    if buffactive['Reive Mark'] then
+        idleSet = set_combine(idleSet, sets.reive)
+    end
+    return idleSet
+end
+ function user_buff_change(buff, gain, eventArgs)
+--     -- Sick and tired of rings being unequip when you have 10,000 buffs being gain/lost?  
+     if not gain then
+         if Rings:contains(player.equipment.ring1) or Rings:contains(player.equipment.ring2) then
+             eventArgs.handled = true
+         end
+     end
+ end
+function is_sc_element_today(spell)
+    if spell.type ~= 'WeaponSkill' then
+        return
+    end
+
+   local weaponskill_elements = S{}:
+    union(skillchain_elements[spell.skillchain_a]):
+    union(skillchain_elements[spell.skillchain_b]):
+    union(skillchain_elements[spell.skillchain_c])
+
+    if weaponskill_elements:contains(world.day_element) then
+        return true
+    else
+        return false
+    end
+
+end
+
+
+function user_job_lockstyle()
+	windower.chat.input('/lockstyleset 018')
+end
