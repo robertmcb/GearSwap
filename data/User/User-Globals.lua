@@ -47,6 +47,7 @@ NotifyBuffs = S{'doom','petrification'}
 	state.UnlockWeapons		  = M(false, 'Unlock Weapons')
 	state.UseCustomTimers 	  = M(true, 'Use Custom Timers')
 	state.WakeUpWeapons 	  =	M(false, 'Wake Up Weapons')
+	state.WakeUpWeapons 	  =	M(true, 'Wake Up Weapons')
 
 --[[Binds you may want to change.
 	Bind special characters.
