@@ -46,7 +46,6 @@ NotifyBuffs = S{'doom','petrification'}
 	state.SelfWarp2Block 	  = M(true, 'Block Warp2 on Self')
 	state.UnlockWeapons		  = M(false, 'Unlock Weapons')
 	state.UseCustomTimers 	  = M(true, 'Use Custom Timers')
-	state.WakeUpWeapons 	  =	M(false, 'Wake Up Weapons')
 	state.WakeUpWeapons 	  =	M(true, 'Wake Up Weapons')
 
 --[[Binds you may want to change.
