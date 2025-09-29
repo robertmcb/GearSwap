@@ -169,6 +169,6 @@ function is_sc_element_today(spell)
 end
 
 
-function user_job_lockstyle()
-	windower.chat.input('/lockstyleset 018')
-end
+--function user_job_lockstyle()
+--	windower.chat.input('/lockstyleset 018')
+--end
