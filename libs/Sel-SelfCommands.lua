@@ -422,7 +422,7 @@ function handle_update(cmdParams)
 		handle_equipping_gear(player.status)
 	end
 
-	if cmdParams == 'user' then
+	if cmdParams[1] == 'user' then
 		display_current_state()
 	end
 
@@ -1580,6 +1580,10 @@ function handle_test(cmdParams)
 	elseif job_test then
 		job_test(cmdParams)
 	end
+end
+
+function handle_equiptest()
+	table.vprint(player.equipment)
 end
 
 -------------------------------------------------------------------------------------------------------------------
