@@ -154,7 +154,7 @@ end
 
 function job_precast(spell, spellMap, eventArgs)
 	if spell.english == 'Convert' then
-		if item_equippable("Murgleis") and state.AutoMurgleis.value ~= 'Never' and (state.MurgleisMode.value == 'Always' or tonumber(state.MurgleisMode.value) > player.tp) then
+		if item_equippable("Murgleis") and state.MurgleisMode.value ~= 'Never' and (state.MurgleisMode.value == 'Always' or tonumber(state.MurgleisMode.value) > player.tp) then
 			internal_enable_set("Weapons")
 		end
 	elseif spell.english:startswith('Temper') or spellMap == 'Enspell' or (spell.english:startswith('Phalanx') and spell.target.type =='SELF') then
@@ -214,8 +214,18 @@ function job_post_midcast(spell, spellMap, eventArgs)
 			if currentSet and currentSet.range == "Ullr" and currentWeapons.range and currentWeapons.range == 'empty' and not currentWeapons.ammo and item_equippable("Regal Gem") then
 				equip({ammo="Regal Gem"})
 			end
-			if spell.skill == 'Enfeebling Magic' and state.Buff.Saboteur then
-				equip(sets.buff.Saboteur)
+			if spell.skill == 'Enfeebling Magic' then
+				if state.Buff.Stymie then
+					if sets.midcast[spell.english] and sets.midcast[spell.english].Stymie then
+						equip(sets.midcast[spell.english].Stymie)
+					elseif sets.Buff.Stymie then
+						equip(sets.Buff.Stymie)
+					end
+				end
+
+				if state.Buff.Saboteur then
+					equip(sets.buff.Saboteur)
+				end
 			end
 		elseif spell.skill == 'Enhancing Magic' then
 			equip(sets.midcast['Enhancing Magic'])
