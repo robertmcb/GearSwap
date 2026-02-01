@@ -127,11 +127,11 @@ function job_pretarget(spell, spellMap, eventArgs)
 				end
 			end
 		elseif spell.english:startswith('Geo') then
-			if set.contains(spell.targets, 'Enemy') then
+			if spell.targets:contains('Enemy') then
 				if ((spell.target.type == 'PLAYER' and not spell.target.charmed) or (spell.target.type == 'NPC' and spell.target.in_party)) then
 					eventArgs.cancel = true
 				end
-			elseif not ((spell.target.type == 'PLAYER' and not spell.target.charmed and spell.target.in_party) or (spell.target.type == 'NPC' and spell.target.in_party) or (spell.target.raw == '<stpt>' or spell.target.raw == '<stal>' or spell.target.raw == '<st>')) then
+			elseif not (spell.target.raw:startswith('<st') or spell.target.in_party) then
 				change_target('<me>')
 			end
 		end
@@ -383,7 +383,16 @@ function job_self_command(commandArgs, eventArgs)
 			local lowerSubCommand = commandArgs[2]:lower()
 			if lowerSubCommand == 'geo' then
 				if commandArgs[3] then
-					windower.chat.input('/ma "Geo-'..autogeo..'" '..commandArgs[3])
+					if commandArgs[3]:startswith('st') then
+						local spell_table = res.spells[get_spell_id_by_name('Geo-'..autogeo)]
+						if spell_table.targets:contains('Enemy') then
+							windower.chat.input('/ma "Geo-'..autogeo..'" <stnpc>')
+						else
+							windower.chat.input('/ma "Geo-'..autogeo..'" <stpc>')
+						end
+					else
+						windower.chat.input('/ma "Geo-'..autogeo..'" '..commandArgs[3])
+					end
 				else
 					windower.chat.input('/ma "Geo-'..autogeo..'" <bt>')
 				end
