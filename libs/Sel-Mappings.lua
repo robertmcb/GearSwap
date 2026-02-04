@@ -859,7 +859,7 @@ end
 
 buff_table_by_name = gearswap.res.buffs:rekey('en')
 
-disable_list = {'terror','sleep','Lullaby','stun','Animated','Charm'}
+disable_list = {'terror','sleep','Lullaby','stun','Animated','Charm','petrification'}
 
 data.status_map = T{
 	{buff='doom',spell='Cursna'},
