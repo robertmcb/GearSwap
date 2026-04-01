@@ -1074,6 +1074,12 @@ function just_acted(spell, spellMap, eventArgs)
 		cancel_spell()
 		eventArgs.cancel = true
 		return true
+	elseif spell and (moving and not state.Uninterruptible.value) and not state.RngHelper.value and state.MiniQueue.value and (spell.action_type == 'Magic' or spell.action_type == 'Item' or spell.action_type == 'Ranged Attack') then
+		cancel_spell()
+		eventArgs.cancel = true
+		delayed_prefix = spell.prefix or ''
+		delayed_cast = spell.english or ''
+		delayed_target = spell.target.id or ''
 	elseif os.clock() < next_cast then
 		if eventArgs and not state.RngHelper.value and state.MiniQueue.value and not (spell.type:startswith('BloodPact') and state.Buff["Astral Conduit"]) then
 			cancel_spell()
@@ -2795,27 +2801,43 @@ end
 lastlocation = {X=0,Y=0}
 moving = false
 wasmoving = false
+state.Uninterruptible = M(false, 'Uninterruptible')
+fixed_pos = ''
 
-windower.raw_register_event('outgoing chunk',function(id,data,modified,is_injected,is_blocked)
+windower.raw_register_event('outgoing chunk',function(id,original,modified,injected,blocked)
 	if id == 0x015 then
+
+		if not blocked and state.Uninterruptible.value then
+			if player.status ~= 'Event' and (gearswap.cued_packet or just_acted()) and fixed_pos ~= '' then
+				return original:sub(1,4)..fixed_pos..original:sub(17)
+			else
+				fixed_pos = original:sub(5,16)
+			end
+		end
+
 		local currentlocation = {X=modified:sub(5,8), Y=modified:sub(13,16)}
 		moving = currentlocation.X ~= lastlocation.X or currentlocation.Y ~= lastlocation.Y
 		lastlocation = currentlocation
 
 		if moving then
-			if sets.Kiting and not wasmoving and not (player.status == 'Event' or midaction() or pet_midaction() or (os.clock() < (petWillAct + 2))) then
-				send_command('gs c update')
+			if not wasmoving then
+				if not (player.status == 'Event' or midaction() or pet_midaction() or (os.clock() < (petWillAct + 2))) then
+					send_command('gs c update')
+				end
+				
+				if not state.Uninterruptible.value then
+					delayed_cast = ''
+					prepared_action = ''
+				end
 			end
 			if state.RngHelper.value and not buffactive['Hover Shot'] then
 				send_command('gs rh clear')
 			end
-			if buffup~= '' then
+			if not state.Uninterruptible.value and buffup~= '' then
 				buffup = ''
 				add_to_chat(123,'Buffup cancelled due to movement.')
 			end
 
-			if not state.Uninterruptible.value then delayed_cast = '' end
-			prepared_action = ''
 		elseif wasmoving then
 			if not (player.status == 'Event' or (os.clock() < (next_cast + 1)) or pet_midaction() or (os.clock() < (petWillAct + 2))) then
 				send_command('gs c update')
@@ -2824,21 +2846,6 @@ windower.raw_register_event('outgoing chunk',function(id,data,modified,is_inject
 
 		wasmoving = moving
 
-	end
-end)
-
--- Uninterruptible Handling
-
-state.Uninterruptible = M(false, 'Uninterruptible')
-fixed_pos = ''
-
-windower.raw_register_event('outgoing chunk',function(id,original,modified,injected,blocked)
-	if not blocked and id == 0x15 and state.Uninterruptible.value then
-		if player.status ~= 'Event' and (gearswap.cued_packet or just_acted()) and fixed_pos ~= '' then
-			return original:sub(1,4)..fixed_pos..original:sub(17)
-		else
-			fixed_pos = original:sub(5,16)
-		end
 	end
 end)
 
