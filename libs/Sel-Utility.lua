@@ -2798,54 +2798,60 @@ function panic_swap_ammo()
 end
 
 -- Movement Handling
-lastlocation = {X=0,Y=0}
+lastlocation = {X=player.x, Z=player.z}
 moving = false
 wasmoving = false
-state.Uninterruptible = M(false, 'Uninterruptible')
-fixed_pos = ''
+movedelay = os.clock() + .1
 
-windower.raw_register_event('outgoing chunk',function(id,original,modified,injected,blocked)
-	if id == 0x015 then
+windower.raw_register_event('prerender', function()
+	if not (os.clock() > movedelay) then return end
+	movedelay = os.clock() + .1
+	local player = windower.ffxi.get_mob_by_target('me') or lastlocation
+	local currentlocation = {X=player.x, Z=player.z}
+	moving = currentlocation.X ~= lastlocation.X or currentlocation.Z ~= lastlocation.Z
+	lastlocation = currentlocation
 
-		if not blocked and state.Uninterruptible.value then
-			if player.status ~= 'Event' and (gearswap.cued_packet or just_acted()) and fixed_pos ~= '' then
-				return original:sub(1,4)..fixed_pos..original:sub(17)
-			else
-				fixed_pos = original:sub(5,16)
+	if moving then
+		if not wasmoving then
+			movedelay = os.clock() + 1
+			if not (player.status == 'Event' or midaction() or pet_midaction() or (os.clock() < (petWillAct + 2))) then
+				send_command('gs c update')
 			end
-		end
-
-		local currentlocation = {X=modified:sub(5,8), Y=modified:sub(13,16)}
-		moving = currentlocation.X ~= lastlocation.X or currentlocation.Y ~= lastlocation.Y
-		lastlocation = currentlocation
-
-		if moving then
-			if not wasmoving then
-				if not (player.status == 'Event' or midaction() or pet_midaction() or (os.clock() < (petWillAct + 2))) then
-					send_command('gs c update')
-				end
-				
-				if not state.Uninterruptible.value then
-					delayed_cast = ''
-					prepared_action = ''
+			
+			if not state.Uninterruptible.value then
+				delayed_cast = ''
+				prepared_action = ''
+				if buffup~= '' then
+					buffup = ''
+					add_to_chat(123,'Buffup cancelled due to movement.')
 				end
 			end
 			if state.RngHelper.value and not buffactive['Hover Shot'] then
 				send_command('gs rh clear')
 			end
-			if not state.Uninterruptible.value and buffup~= '' then
-				buffup = ''
-				add_to_chat(123,'Buffup cancelled due to movement.')
-			end
-
-		elseif wasmoving then
-			if not (player.status == 'Event' or (os.clock() < (next_cast + 1)) or pet_midaction() or (os.clock() < (petWillAct + 2))) then
-				send_command('gs c update')
-			end
 		end
+	elseif wasmoving then
+		movedelay = os.clock() + 1
+		if not (player.status == 'Event' or (os.clock() < (next_cast + 1)) or pet_midaction() or (os.clock() < (petWillAct + 2))) then
+			send_command('gs c update')
+		end
+	end
 
-		wasmoving = moving
+	wasmoving = moving
+end)
 
+-- Uninterruptible Handling
+
+state.Uninterruptible = M(false, 'Uninterruptible')
+fixed_pos = ''
+
+windower.raw_register_event('outgoing chunk',function(id,original,modified,injected,blocked)
+	if not blocked and id == 0x15 and state.Uninterruptible.value then
+		if player.status ~= 'Event' and (gearswap.cued_packet or just_acted()) and fixed_pos ~= '' then
+			return original:sub(1,4)..fixed_pos..original:sub(17)
+		else
+			fixed_pos = original:sub(5,16)
+		end
 	end
 end)
 
