@@ -2808,7 +2808,7 @@ movedelay = os.clock() + .1
 windower.raw_register_event('prerender', function()
 	if not (os.clock() > movedelay) then return end
 	movedelay = os.clock() + .1
-	local player = windower.ffxi.get_mob_by_target('me')
+	local player = windower.ffxi.get_mob_by_target('me') or lastlocation
 	local currentlocation = {X=player.x, Z=player.z}
 	moving = currentlocation.X ~= lastlocation.X or currentlocation.Z ~= lastlocation.Z
 	lastlocation = currentlocation
